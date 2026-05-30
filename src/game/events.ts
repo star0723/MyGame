@@ -1,0 +1,15 @@
+export const GameEvents = {
+  hudChanged: 'hud-changed',
+  openSlot: 'open-slot',
+  closeSlot: 'close-slot',
+  openEliteUpgrade: 'open-elite-upgrade',
+  closeEliteUpgrade: 'close-elite-upgrade',
+  upgradePicked: 'upgrade-picked',
+  eliteUpgradePicked: 'elite-upgrade-picked',
+  awakeningStarted: 'awakening-started',
+  demonBorn: 'demon-born',
+  bossSpawned: 'boss-spawned',
+  runEnded: 'run-ended',
+  showToast: 'show-toast',
+  shockwaveTriggered: 'shockwave-triggered',
+} as const;

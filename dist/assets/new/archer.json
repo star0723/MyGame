@@ -1,0 +1,105 @@
+{
+  "image": "archer.png",
+  "frameWidth": 107,
+  "frameHeight": 64,
+  "columns": 6,
+  "count": 30,
+  "anchor": {
+    "x": 0.437,
+    "y": 0.9608
+  },
+  "rows": [
+    6,
+    6,
+    6,
+    6,
+    6
+  ],
+  "anims": {
+    "idle": [
+      0,
+      5
+    ],
+    "walk": [
+      6,
+      11
+    ],
+    "attack": [
+      12,
+      17
+    ],
+    "hurt": [
+      18,
+      23
+    ],
+    "death": [
+      24,
+      29
+    ]
+  },
+  "animationMeta": {
+    "idle": {
+      "frameRate": 6,
+      "repeat": -1
+    },
+    "walk": {
+      "frameRate": 12,
+      "repeat": -1
+    },
+    "attack": {
+      "frameRate": 16,
+      "repeat": 0
+    },
+    "hurt": {
+      "frameRate": 10,
+      "repeat": 0
+    },
+    "death": {
+      "frameRate": 10,
+      "repeat": 0
+    }
+  },
+  "sourceFrameSequence": {
+    "idle": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "walk": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ],
+    "attack": [
+      12,
+      13,
+      14,
+      15,
+      16,
+      17
+    ],
+    "hurt": [
+      24,
+      25,
+      26,
+      27,
+      28,
+      29
+    ],
+    "death": [
+      36,
+      37,
+      38,
+      39,
+      40,
+      41
+    ]
+  },
+  "notes": "Action-adapted: fixed rows idle/walk/attack/hurt/death, six frames each. Low-res indexed PNG for mobile package size."
+}

@@ -1,0 +1,73 @@
+html,
+body,
+#game {
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  margin: 0;
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+  background: #0b0710;
+}
+
+* {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+body {
+  color: #f4e8d6;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+
+canvas {
+  display: block;
+}
+
+#rotate-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: #130b18;
+  color: #ffd1d9;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-family: monospace;
+}
+
+#rotate-overlay .rotate-icon {
+  font-size: 64px;
+  margin-bottom: 24px;
+  animation: rotate-hint 1.6s ease-in-out infinite;
+}
+
+#rotate-overlay p {
+  font-size: 22px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Landscape overlay is toggled by JS (see main.ts) — CSS alone cannot
+   distinguish mobile landscape from desktop landscape reliably. */
+
+@keyframes rotate-hint {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(-90deg);
+  }
+}

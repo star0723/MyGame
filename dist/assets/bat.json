@@ -1,0 +1,33 @@
+{
+  "image": "bat.png",
+  "frameWidth": 228,
+  "frameHeight": 202,
+  "columns": 6,
+  "count": 23,
+  "anchor": {
+    "x": 0.5132,
+    "y": 0.9703
+  },
+  "anims": {
+    "fly": [
+      0,
+      3
+    ],
+    "move": [
+      4,
+      9
+    ],
+    "swoop": [
+      10,
+      14
+    ],
+    "ball": [
+      15,
+      16
+    ],
+    "death": [
+      17,
+      22
+    ]
+  }
+}
