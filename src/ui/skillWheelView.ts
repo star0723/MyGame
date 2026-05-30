@@ -2,34 +2,29 @@ import Phaser from 'phaser';
 import {
   UI,
   UI_DEPTH,
+  addIcon,
   designSize,
-  pixelText,
-  makeMedallion,
-  selectionOutline,
   enableHit,
+  makeMedallion,
+  makePanel,
+  pixelText,
+  selectionOutline,
 } from './uiTheme';
 
 export interface SkillWheelOption {
   id: string;
   label: string;
   color: number;
-  glyph?: string;
+  icon?: Parameters<typeof addIcon>[2];
 }
 
-/**
- * Radial 4-skill wheel placeholder. Tapping a minion ("点击小怪" / "描边选中")
- * pops this open at the tap point: a center "技能" hub + 4 nodes at N/E/S/W,
- * color-coded toxic-green / blood / arcane-purple / bone. A full-screen backdrop
- * sits just below the nodes and catches a tap to dismiss. All primitives, no art.
- * Nodes rebuild on every {@link showAt}.
- */
-const RADIUS = 118;
-const NODE_ANGLES = [-90, 0, 90, 180] as const;
+const RADIUS = 82;
+const NODE_ANGLES = [-135, -45, 45, 135] as const;
 const DEFAULT_OPTIONS: SkillWheelOption[] = [
-  { id: 'shock', label: '震荡', color: UI.flame, glyph: '震' },
-  { id: 'blood', label: '血爆', color: UI.blood, glyph: '爆' },
-  { id: 'corrode', label: '腐蚀', color: UI.arcane, glyph: '蚀' },
-  { id: 'summon', label: '召唤', color: UI.bone, glyph: '唤' },
+  { id: 'shock', label: '震荡', color: UI.goldBright, icon: 'slash' },
+  { id: 'blood', label: '血爆', color: UI.blood, icon: 'drop' },
+  { id: 'corrode', label: '腐蚀', color: UI.arcaneBright, icon: 'embryo' },
+  { id: 'summon', label: '召唤', color: UI.flame, icon: 'skull' },
 ];
 
 export class SkillWheelView {
@@ -40,39 +35,58 @@ export class SkillWheelView {
   constructor(
     private readonly scene: Phaser.Scene,
     private readonly onSelect: (id: string) => void,
+    private readonly onClose?: () => void,
   ) {
     const { w, h } = designSize(scene);
     this.root = scene.add.container(0, 0).setScrollFactor(0).setDepth(UI_DEPTH.wheel).setVisible(false);
-
-    // Full-screen catcher, placed below the node layer so a tap off any node dismisses.
     this.backdrop = scene.add
-      .rectangle(w / 2, h / 2, w, h, UI.void, 0.55)
+      .rectangle(w / 2, h / 2, w, h, UI.void, 0.2)
       .setInteractive({ useHandCursor: false });
     this.backdrop.on('pointerdown', () => this.hide());
-
     this.nodeLayer = scene.add.container(0, 0);
     this.root.add([this.backdrop, this.nodeLayer]);
   }
 
   showAt(x: number, y: number, options?: SkillWheelOption[]): void {
     const { w, h } = designSize(this.scene);
-    // Clamp the center so every node (at RADIUS) stays in [60, w-60] x [120, h-120].
-    const cx = Phaser.Math.Clamp(x, 60 + RADIUS, w - 60 - RADIUS);
-    const cy = Phaser.Math.Clamp(y, 120 + RADIUS, h - 120 - RADIUS);
+    const cx = Phaser.Math.Clamp(x, 206, w - 152);
+    const cy = Phaser.Math.Clamp(y, 348, h - 318);
 
     this.clearNodes();
+    const panel = makePanel(this.scene, 242, 178, {
+      fill: UI.ink,
+      border: UI.bronze,
+      borderWidth: 2,
+      radius: 12,
+      ornate: true,
+    }).setPosition(cx, cy);
+    const callout = pixelText(this.scene, cx - 112, cy - 110, '点击怪物\n打开技能轮盘', {
+      size: 16,
+      color: UI.textGold,
+      bold: true,
+      align: 'center',
+    }).setOrigin(0.5);
+    const pointer = this.scene.add.triangle(cx - 88, cy - 72, 0, 0, 26, 8, 0, 16, UI.bronze, 0.95);
+    this.nodeLayer.add([panel, callout, pointer]);
     this.buildHub(cx, cy);
+
     (options ?? DEFAULT_OPTIONS).slice(0, 4).forEach((opt, i) => {
       const ang = Phaser.Math.DegToRad(NODE_ANGLES[i]);
-      this.buildNode(opt, cx + Math.cos(ang) * RADIUS, cy + Math.sin(ang) * RADIUS);
+      this.buildNode(opt, cx + Math.cos(ang) * RADIUS, cy + Math.sin(ang) * RADIUS * 0.68);
     });
 
     this.root.setVisible(true);
   }
 
   hide(): void {
+    const wasVisible = this.root.visible;
     this.clearNodes();
     this.root.setVisible(false);
+    if (wasVisible) this.onClose?.();
+  }
+
+  isVisible(): boolean {
+    return this.root.visible;
   }
 
   destroy(): void {
@@ -82,31 +96,40 @@ export class SkillWheelView {
   }
 
   private buildHub(x: number, y: number): void {
-    const hub = makeMedallion(this.scene, 34, { fill: UI.panel, ring: UI.gold, glow: UI.crimsonBright });
-    hub.setPosition(x, y);
-    const label = pixelText(this.scene, x, y, '技能', { size: 16, color: UI.textGold, align: 'center' }).setOrigin(0.5);
+    const hub = makeMedallion(this.scene, 26, {
+      fill: UI.panel,
+      ring: UI.gold,
+      glow: UI.crimsonBright,
+      glowAlpha: 0.18,
+    }).setPosition(x, y);
+    const label = pixelText(this.scene, x, y, '技', {
+      size: 18,
+      color: UI.textGold,
+      align: 'center',
+      bold: true,
+    }).setOrigin(0.5);
     this.nodeLayer.add([hub, label]);
   }
 
   private buildNode(opt: SkillWheelOption, x: number, y: number): void {
-    const node = makeMedallion(this.scene, 42, { fill: UI.slotFill, ring: opt.color, glow: opt.color });
-    node.setPosition(x, y);
-    enableHit(node, 84, 84);
+    const node = makeMedallion(this.scene, 31, {
+      fill: UI.cellDark,
+      ring: opt.color,
+      ringWidth: 4,
+      glow: opt.color,
+      glowAlpha: 0.2,
+    }).setPosition(x, y);
+    enableHit(node, 68, 68);
+    addIcon(this.scene, node, opt.icon ?? 'orb', 0, -3, 28, opt.color);
 
-    const glyph = pixelText(this.scene, x, y - 4, opt.glyph ?? opt.label.charAt(0), {
-      size: 26,
-      color: UI.text,
+    const label = pixelText(this.scene, x, y + 42, opt.label, {
+      size: 12,
+      color: UI.textDim,
       align: 'center',
       bold: true,
     }).setOrigin(0.5);
-    const label = pixelText(this.scene, x, y + 58, opt.label, {
-      size: 15,
-      color: UI.textDim,
-      align: 'center',
-    }).setOrigin(0.5);
-
-    // "描边选中" highlight, hover-only.
-    const outline = selectionOutline(this.scene, 96, 96, opt.color, 48).setPosition(x, y).setVisible(false);
+    const outline = selectionOutline(this.scene, 72, 72, opt.color, 36).setPosition(x, y).setVisible(false);
+    const hit = this.scene.add.rectangle(x, y + 10, 78, 92, UI.void, 0.001).setInteractive({ useHandCursor: true });
 
     const press = (): void => {
       this.scene.tweens.add({ targets: node, scale: 0.88, duration: 70, yoyo: true, ease: 'Quad.easeOut' });
@@ -121,7 +144,6 @@ export class SkillWheelView {
       outline.setVisible(false);
       label.setColor(UI.textDim);
     };
-    const hit = this.scene.add.rectangle(x, y + 16, 104, 136, UI.void, 0.001).setInteractive({ useHandCursor: true });
 
     node.on('pointerover', showHover);
     node.on('pointerout', hideHover);
@@ -129,8 +151,7 @@ export class SkillWheelView {
     hit.on('pointerover', showHover);
     hit.on('pointerout', hideHover);
     hit.on('pointerdown', press);
-
-    this.nodeLayer.add([outline, node, glyph, label, hit]);
+    this.nodeLayer.add([outline, node, label, hit]);
   }
 
   private clearNodes(): void {
