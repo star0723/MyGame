@@ -1,20 +1,28 @@
 import Phaser from 'phaser';
-import { DEPTHS } from '../game/constants';
+import { UI, UI_DEPTH, designSize, makePanel, pixelText } from './uiTheme';
 
 export type ToastTone = 'hero' | 'system';
 
-/** Transient top-center messages (hero shouts in blue, system lines in red).
- *  Screen-space (scrollFactor 0), max 3 on screen, the rest queue. */
 export class ToastView {
   private queue: Array<{ text: string; tone: ToastTone }> = [];
-  private active: Phaser.GameObjects.Text[] = [];
+  private active: Phaser.GameObjects.Container[] = [];
   private readonly maxActive = 3;
 
-  constructor(private scene: Phaser.Scene) {}
+  constructor(private readonly scene: Phaser.Scene) {}
 
   show(text: string, tone: ToastTone = 'system'): void {
     this.queue.push({ text, tone });
     this.pump();
+  }
+
+  clear(): void {
+    this.queue = [];
+    const active = [...this.active];
+    this.active = [];
+    active.forEach((toast) => {
+      this.scene.tweens.killTweensOf(toast);
+      toast.destroy(true);
+    });
   }
 
   private pump(): void {
@@ -25,30 +33,38 @@ export class ToastView {
   }
 
   private spawn(text: string, tone: ToastTone): void {
-    const color = tone === 'hero' ? '#9fd4ff' : '#ff8fa3';
-    const label = this.scene.add
-      .text(this.scene.scale.width / 2, 0, text, {
-        fontFamily: 'monospace',
-        fontSize: '20px',
-        color,
-        backgroundColor: '#1a0c14',
-        padding: { x: 14, y: 6 },
-      })
-      .setOrigin(0.5)
-      .setScrollFactor(0)
-      .setDepth(DEPTHS.ui)
-      .setAlpha(0);
-    this.active.push(label);
+    const { w } = designSize(this.scene);
+    const color = tone === 'hero' ? UI.textGold : UI.textCrimson;
+    const border = tone === 'hero' ? UI.gold : UI.crimson;
+    const label = pixelText(this.scene, 0, 0, text, {
+      size: 18,
+      color,
+      bold: tone === 'hero',
+      align: 'center',
+      wordWrap: 420,
+    }).setOrigin(0.5);
+    const width = Math.min(520, Math.max(220, label.width + 34));
+    const panel = makePanel(this.scene, width, label.height + 20, {
+      fill: UI.ink,
+      border,
+      borderWidth: 2,
+      radius: 6,
+      ornate: false,
+    });
+    const toast = this.scene.add.container(w / 2, 0, [panel, label]).setScrollFactor(0).setDepth(UI_DEPTH.overlay).setAlpha(0);
+    this.active.push(toast);
     this.reflow();
-    this.scene.tweens.add({ targets: label, alpha: 1, duration: 180 });
-    this.scene.time.delayedCall(2000, () => {
+    this.scene.tweens.add({ targets: toast, alpha: 1, y: toast.y + 8, duration: 160, ease: 'Quad.easeOut' });
+    this.scene.time.delayedCall(1400, () => {
+      if (!toast.active) return;
       this.scene.tweens.add({
-        targets: label,
+        targets: toast,
         alpha: 0,
-        duration: 400,
+        y: toast.y - 8,
+        duration: 360,
         onComplete: () => {
-          this.active = this.active.filter((l) => l !== label);
-          label.destroy();
+          this.active = this.active.filter((l) => l !== toast);
+          toast.destroy(true);
           this.reflow();
           this.pump();
         },
@@ -57,6 +73,6 @@ export class ToastView {
   }
 
   private reflow(): void {
-    this.active.forEach((label, i) => label.setPosition(this.scene.scale.width / 2, 108 + i * 40));
+    this.active.forEach((label, i) => label.setPosition(designSize(this.scene).w / 2, 316 + i * 46));
   }
 }

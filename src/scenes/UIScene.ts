@@ -12,6 +12,8 @@ import { SkillWheelView } from '../ui/skillWheelView';
 import { DemonSlotMachineView } from '../ui/demonSlotMachineView';
 import { ErgonomicZonesOverlay } from '../ui/ergonomicZonesOverlay';
 import { PauseSettingsView } from '../ui/pauseSettingsView';
+import { RadarMapView } from '../ui/radarMapView';
+import { LegendBarView } from '../ui/legendBarView';
 import { chooseOne } from '../utils/math';
 import { HERO_LINES, SYSTEM_LINES } from '../data/dialogue';
 
@@ -26,6 +28,8 @@ export class UIScene extends Phaser.Scene {
   private demonSlot?: DemonSlotMachineView;
   private pauseSettingsView?: PauseSettingsView;
   private zones?: ErgonomicZonesOverlay;
+  private radarMap?: RadarMapView;
+  private legendBar?: LegendBarView;
   private lastPhase = 'playing';
 
   constructor() {
@@ -60,12 +64,15 @@ export class UIScene extends Phaser.Scene {
       onClaim: (upgrade) => this.pickUpgrade(upgrade),
     });
     this.pauseSettingsView = new PauseSettingsView(this, () => this.closePauseSettings());
+    this.radarMap = new RadarMapView(this);
+    this.legendBar = new LegendBarView(this);
 
     const gameScene = this.scene.get('GameScene');
     gameScene.events.on(GameEvents.hudChanged, (world: World) => {
       this.topStatusBar?.update(world);
       this.minionLegion?.update(world);
       this.skillButton?.update(world);
+      this.radarMap?.update(world);
       this.lastPhase = world.phase;
     });
     gameScene.events.on(GameEvents.showToast, (p: { text: string; tone?: 'hero' | 'system' }) =>
@@ -120,6 +127,8 @@ export class UIScene extends Phaser.Scene {
       this.demonSlot?.destroy();
       this.pauseSettingsView?.destroy();
       this.zones?.destroy();
+      this.radarMap?.destroy();
+      this.legendBar?.destroy();
     });
   }
 

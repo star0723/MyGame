@@ -4,12 +4,4 @@ export default defineConfig({
   server: {
     port: 5173,
   },
-  build: {
-    rollupOptions: {
-      input: {
-        main: 'index.html',
-        uiBackupPreview: 'ui-backup-preview.html',
-      },
-    },
-  },
 });
